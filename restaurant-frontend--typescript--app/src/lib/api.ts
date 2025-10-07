@@ -1,16 +1,21 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5068";
 
 export async function getProducts() {
-  const res = await fetch(`${API_URL}/api/products`);
-  if (!res.ok) throw new Error('Failed to fetch products');
-  return res.json();
+  try {
+    const res = await fetch(`${API_URL}/api/products`, { cache: 'no-store' });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Failed to fetch products: ${res.status} - ${text}`);
+    }
+
+    return res.json();
+  } catch (err) {
+    console.error('Error fetching products:', err);
+    throw err; // re-throw so your UI can handle it
+  }
 }
 
-export async function getProduct(id: string | number) {
-  const res = await fetch(`${API_URL}/api/products/${id}`);
-  if (!res.ok) throw new Error('Failed to fetch product');
-  return res.json();
-}
 
 export async function postOrder(order: any) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
